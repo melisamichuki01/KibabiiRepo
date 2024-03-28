@@ -37,7 +37,7 @@ def categorize_season(month):
 
 # Function to load rainfall data
 def load_rainfall_data():
-    rainfall_df = pd.read_csv(r"Kibabii University data.xlsx - Rainfall.csv")
+    rainfall_df = pd.read_csv(r"KibabiiAnalysis\Kibabii University data.xlsx - Rainfall.csv")
     rainfall_df['ID'] = pd.to_datetime(rainfall_df['ID'], format='%Y%m%d')
     rainfall_df = add_date_features(rainfall_df, 'ID')
     rainfall_df.set_index('ID', inplace=True)
@@ -45,7 +45,7 @@ def load_rainfall_data():
 
 # Function to load temperature max data
 def load_temp_max_data():
-    temp_max_df = pd.read_csv(r"Kibabii University data.xlsx - Tmax.csv")
+    temp_max_df = pd.read_csv(r"KibabiiAnalysis\Kibabii University data.xlsx - Tmax.csv")
     temp_max_df['ID'] = pd.to_datetime(temp_max_df['ID'], format='%Y%m%d')
     temp_max_df = add_date_features(temp_max_df, 'ID')
     temp_max_df.set_index('ID', inplace=True)
@@ -53,7 +53,7 @@ def load_temp_max_data():
 
 # Function to load temperature min data
 def load_temp_min_data():
-    temp_min_df = pd.read_csv(r"Kibabii University data.xlsx - Tmin.csv")
+    temp_min_df = pd.read_csv(r"KibabiiAnalysis\Kibabii University data.xlsx - Tmin.csv")
     temp_min_df['ID'] = pd.to_datetime(temp_min_df['ID'], format='%Y%m%d')
     temp_min_df = add_date_features(temp_min_df, 'ID')
     temp_min_df.set_index('ID', inplace=True)
