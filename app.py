@@ -119,7 +119,7 @@ def seasonal_decomposition_and_plot(data, column):
     fig.update_xaxes(title_text="Date", tickvals=pd.date_range(start='1990-01-01', end='2022-12-31', freq='AS'), tickformat="%Y")
     st.plotly_chart(fig)
 
-    fig = px.line(x=decomposition.seasonal.index, y=decomposition.seasonal, title=f"Seasonal - {column}")
+    fig = px.line(x=decomposition.seasonal.index, y=decomposition.seasonal.values, title=f"Seasonal - {column}")
     fig.update_xaxes(title_text="Date", tickvals=pd.date_range(start='1990-01-01', end='2022-12-31', freq='AS'), tickformat="%Y")
     st.plotly_chart(fig)
 
