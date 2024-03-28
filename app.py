@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+import statsmodels.api as sm
 
 # Function to add date features
 def add_date_features(df, date_column_name):
@@ -37,7 +38,7 @@ def categorize_season(month):
 
 # Function to load rainfall data
 def load_rainfall_data():
-    rainfall_df = pd.read_csv(r"Kibabii_University_data_Rainfall.csv")
+    rainfall_df = pd.read_csv("Kibabii_University_data_Rainfall.csv")
     rainfall_df['ID'] = pd.to_datetime(rainfall_df['ID'], format='%Y%m%d')
     rainfall_df = add_date_features(rainfall_df, 'ID')
     rainfall_df.set_index('ID', inplace=True)
@@ -45,7 +46,7 @@ def load_rainfall_data():
 
 # Function to load temperature max data
 def load_temp_max_data():
-    temp_max_df = pd.read_csv(r"Kibabii_University_data_Tmax.csv")
+    temp_max_df = pd.read_csv("Kibabii_University_data_Tmax.csv")
     temp_max_df['ID'] = pd.to_datetime(temp_max_df['ID'], format='%Y%m%d')
     temp_max_df = add_date_features(temp_max_df, 'ID')
     temp_max_df.set_index('ID', inplace=True)
@@ -53,7 +54,7 @@ def load_temp_max_data():
 
 # Function to load temperature min data
 def load_temp_min_data():
-    temp_min_df = pd.read_csv(r"Kibabii_University_data_Tmin.csv")
+    temp_min_df = pd.read_csv("Kibabii_University_data_Tmin.csv")
     temp_min_df['ID'] = pd.to_datetime(temp_min_df['ID'], format='%Y%m%d')
     temp_min_df = add_date_features(temp_min_df, 'ID')
     temp_min_df.set_index('ID', inplace=True)
@@ -101,12 +102,114 @@ def plot_quarterly_averages(data, column, year, quarter):
     fig = px.line(quarterly_averages, x=quarterly_averages.index, y=quarterly_averages.values, title=f"Quarterly Average {column} - Q{quarter} {year}")
     st.plotly_chart(fig)
 
+# Function to plot outliers using box plot
+def plot_outliers(data, column):
+    fig = px.box(data, y=column, title=f"Box Plot - {column}")
+    st.plotly_chart(fig)
+
+# Perform seasonal decomposition and plot for each column
+def seasonal_decomposition_and_plot(data, column):
+    decomposition = sm.tsa.seasonal_decompose(data[column])
+
+    fig = px.line(x=decomposition.observed.index, y=decomposition.observed, title=f"Observed - {column}")
+    fig.update_xaxes(title_text="Date", tickvals=pd.date_range(start='1990-01-01', end='2022-12-31', freq='AS'), tickformat="%Y")
+    st.plotly_chart(fig)
+
+    fig = px.line(x=decomposition.trend.index, y=decomposition.trend, title=f"Trend - {column}")
+    fig.update_xaxes(title_text="Date", tickvals=pd.date_range(start='1990-01-01', end='2022-12-31', freq='AS'), tickformat="%Y")
+    st.plotly_chart(fig)
+
+    fig = px.line(x=decomposition.seasonal.index, y=decomposition.seasonal, title=f"Seasonal - {column}")
+    fig.update_xaxes(title_text="Date", tickvals=pd.date_range(start='1990-01-01', end='2022-12-31', freq='AS'), tickformat="%Y")
+    st.plotly_chart(fig)
+
+    fig = px.line(x=decomposition.resid.index, y=decomposition.resid, title=f"Residual - {column}")
+    fig.update_xaxes(title_text="Date", tickvals=pd.date_range(start='1990-01-01', end='2022-12-31', freq='AS'), tickformat="%Y")
+    st.plotly_chart(fig)
 
 # Page: Home
 def page_home():
     st.title("Welcome to Your Weather Data App!")
     st.write("This app allows you to explore rainfall and temperature data.")
     st.write("Please use the sidebar to navigate to different pages.")
+
+    st.header("Research Questions")
+    st.markdown("* What are the trends in climatic patterns in North Rift region for the last 30 years?")
+    st.markdown("* How do you predict climatic weather patterns?")
+
+    st.header("Data Understanding")
+    st.markdown("### Rainfall Dataset")
+    st.markdown("The rainfall dataset has data for rainfall data for 8 counties and for a period of 30 years from 1990-2022 and 9 variables:")
+    st.markdown("- ID (Date)")
+    st.markdown("- TransNzoia")
+    st.markdown("- UasinGishu")
+    st.markdown("- Nandi")
+    st.markdown("- Turkana")
+    st.markdown("- Baringo")
+    st.markdown("- WestPokot")
+    st.markdown("- Samburu")
+    st.markdown("- ElgeyoMarakwet")
+
+    st.markdown("### Temperature Datasets")
+    st.markdown("The temperature datasets have data for min and max temperature for 8 counties and for a period of 30 years from 1990-2022 and 9 variables:")
+    st.markdown("- ID (Date)")
+    st.markdown("- TransNzoia")
+    st.markdown("- UasinGishu")
+    st.markdown("- Nandi")
+    st.markdown("- Turkana")
+    st.markdown("- Baringo")
+    st.markdown("- WestPokot")
+    st.markdown("- Samburu")
+    st.markdown("- ElgeyoMarakwet")
+    
+    st.header("Summary")
+    st.markdown("""
+    The datasets consist of rainfall and temperature data for the North Rift region, comprising 9 variables each and a total of 12053 observations. The datasets have undergone profiling analysis, revealing the following key insights:
+
+    1. **Data Integrity**:
+       - There are no missing cells in any of the datasets, indicating that the data is complete and ready for analysis.
+       - Additionally, there are no duplicate rows present in the datasets, ensuring data consistency and reliability.
+
+    2. **Variable Description**:
+       - Each dataset contains 9 variables, which likely include identifiers such as 'ID' or 'Date' and measurements for different locations or climatic parameters.
+       - Rainfall data is reported in millimeters, while temperature data (both maximum and minimum) is recorded in degrees Celsius.
+
+    3. **Dataset Consistency**:
+       - All three datasets have the same number of observations, suggesting consistency in data collection and recording processes across variables.
+
+    4. **Data Profiling Reports**:
+       - The provided profiling reports offer detailed statistics on the datasets, including the number of variables, observations, missing cells, and duplicate rows.
+       - The absence of missing cells and duplicate rows ensures the datasets' quality and reliability for further analysis.
+
+    Based on the profiling reports, the datasets appear to be well-prepared and suitable for comprehensive analysis of climatic patterns in the North Rift region. Further exploration and analysis can be conducted to uncover trends, relationships, and insights within the data, contributing to a deeper understanding of the region's climatic dynamics.
+
+    **Rainfall Columns**:
+
+    * TransNzoia_rain: 5.46% outliers - TransNzoia might experience occasional heavy rainfall due to its geographic location or seasonal weather patterns.
+    * UasinGishu_rain: 6.24% outliers - Uasin Gishu might be prone to sudden rainfall variations influenced by local topography or microclimatic factors.
+    * Nandi_rain: 3.94% outliers - Nandi may exhibit moderate rainfall outliers caused by local terrain or land use changes.
+    * Turkana_rain: 11.32% outliers - Turkana's outliers could be attributed to its arid climate, occasional flash floods, or measurement errors.
+    * Baringo_rain: 8.52% outliers - Baringo may experience outliers due to its diverse landscape, including highlands and lowlands, leading to varied rainfall patterns.
+    * WestPokot_rain: 8.87% outliers - West Pokot's outliers might result from its rugged terrain and susceptibility to localized weather phenomena.
+    * Samburu_rain: 11.39% outliers - Samburu may encounter outliers due to its semi-arid climate, sporadic rainfall, or data collection challenges.
+    * ElgeyoMarakwet_rain: 7.50% outliers - Elgeyo Marakwet's outliers could stem from its mountainous terrain or seasonal weather extremes.
+
+    **Min Temperature Columns and Max Temperature Columns**:
+
+    * The outliers in temperature columns could be influenced by various factors such as elevation, proximity to water bodies, urbanization, and land use changes.
+    * Turkana, being arid, might have temperature outliers due to extreme daytime heating and rapid cooling at night.
+    * Samburu, being semi-arid, might experience temperature outliers due to variations in elevation and vegetation cover affecting local microclimates.
+    * Nandi and Uasin Gishu, being highland areas, might have temperature outliers due to altitudinal gradients and topographic features.
+    * TransNzoia and Elgeyo Marakwet may exhibit temperature outliers due to their varied topography and altitude differences within the regions.
+    * Baringo and West Pokot may have temperature outliers influenced by their diverse landscape, including valleys, plateaus, and hills
+    """)
+    
+    # Seasonality section
+    st.header("Seasonality")
+    st.write("Seasonal decomposition analysis has been performed for each column separately. You can explore the observed, trend, seasonal, and residual components for each variable.")
+    st.write("From the plots of the seasonality component for each region, it's evident that there is noticeable seasonality present in all regions. The seasonality component captures recurring patterns or fluctuations that occur at regular intervals within each region's data. These patterns suggest that in each region follows a distinct seasonal trend, exhibiting periodic variations over time. Understanding and accounting for this seasonality is crucial for accurately modeling and forecasting rainfall patterns in these regions.")
+    st.write("You can further explore the seasonal decomposition plots on the each data page.")
+
 
 # Page 1: Rainfall Data
 def page_rainfall():
@@ -120,7 +223,7 @@ def page_rainfall():
     # Plotting section
     st.subheader("Plot Rainfall Data")
     selected_column = st.selectbox("Select Column", rainfall_data.columns)
-    plot_type = st.selectbox("Select Plot Type", ["Yearly", "Monthly", "Seasonal", "Quarterly"])
+    plot_type = st.selectbox("Select Plot Type", ["Yearly", "Monthly", "Seasonal", "Quarterly", "Outliers","Seasonal Decomposition"])
     if plot_type == "Yearly":
         plot_yearly_averages(rainfall_data, selected_column)
     elif plot_type == "Monthly":
@@ -129,8 +232,14 @@ def page_rainfall():
         selected_year = st.selectbox("Select Year", sorted(rainfall_data["Year"].unique()))
         selected_quarter = st.selectbox("Select Quarter", [1, 2, 3, 4])
         plot_quarterly_averages(rainfall_data, selected_column, selected_year, selected_quarter)
+    elif plot_type == "Outliers":
+        plot_outliers(rainfall_data, selected_column)
+    elif plot_type == "Seasonal Decomposition":
+        st.title("Seasonal Decomposition")
+        seasonal_decomposition_and_plot(rainfall_data, selected_column)
     else:
         plot_seasonal_averages(rainfall_data, selected_column)
+
 
 # Page 2: Temperature Max Data
 def page_temp_max():
@@ -144,7 +253,7 @@ def page_temp_max():
     # Plotting section
     st.subheader("Plot Temperature Max Data")
     selected_column = st.selectbox("Select Column", temp_max_data.columns)
-    plot_type = st.selectbox("Select Plot Type", ["Yearly", "Monthly", "Seasonal", "Quarterly"])
+    plot_type = st.selectbox("Select Plot Type", ["Yearly", "Monthly", "Seasonal", "Quarterly", "Outliers","Seasonal Decomposition"])
     if plot_type == "Yearly":
         plot_yearly_averages(temp_max_data, selected_column)
     elif plot_type == "Monthly":
@@ -153,6 +262,11 @@ def page_temp_max():
         selected_year = st.selectbox("Select Year", sorted(temp_max_data["Year"].unique()))
         selected_quarter = st.selectbox("Select Quarter", [1, 2, 3, 4])
         plot_quarterly_averages(temp_max_data, selected_column, selected_year, selected_quarter)
+    elif plot_type == "Outliers":
+        plot_outliers(temp_max_data, selected_column)
+    elif plot_type == "Seasonal Decomposition":
+        st.title("Seasonal Decomposition")
+        seasonal_decomposition_and_plot(temp_max_data, selected_column)
     else:
         plot_seasonal_averages(temp_max_data, selected_column)
 
@@ -168,7 +282,7 @@ def page_temp_min():
     # Plotting section
     st.subheader("Plot Temperature Min Data")
     selected_column = st.selectbox("Select Column", temp_min_data.columns)
-    plot_type = st.selectbox("Select Plot Type", ["Yearly", "Monthly", "Seasonal", "Quarterly"])
+    plot_type = st.selectbox("Select Plot Type", ["Yearly", "Monthly", "Seasonal", "Quarterly", "Outliers","Seasonal Decomposition"])
     if plot_type == "Yearly":
         plot_yearly_averages(temp_min_data, selected_column)
     elif plot_type == "Monthly":
@@ -177,8 +291,14 @@ def page_temp_min():
         selected_year = st.selectbox("Select Year", sorted(temp_min_data["Year"].unique()))
         selected_quarter = st.selectbox("Select Quarter", [1, 2, 3, 4])
         plot_quarterly_averages(temp_min_data, selected_column, selected_year, selected_quarter)
+    elif plot_type == "Outliers":
+        plot_outliers(temp_min_data, selected_column)
+    elif plot_type == "Seasonal Decomposition":
+        st.title("Seasonal Decomposition")
+        seasonal_decomposition_and_plot(temp_min_data, selected_column)
     else:
         plot_seasonal_averages(temp_min_data, selected_column)
+
 
 # Main function to run the app
 def main():
