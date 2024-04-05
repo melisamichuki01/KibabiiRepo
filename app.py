@@ -1,8 +1,11 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+import matplotlib
+matplotlib.use('TkAgg')  # Or 'Qt5Agg'
+import matplotlib.pyplot as plt
 import statsmodels.api as sm
-
+from prophet import Prophet
 # Function to add date features
 def add_date_features(df, date_column_name):
     df["Day"] = df[date_column_name].dt.dayofweek
@@ -111,22 +114,40 @@ def plot_outliers(data, column):
 def seasonal_decomposition_and_plot(data, column):
     decomposition = sm.tsa.seasonal_decompose(data[column])
 
-    fig = px.line(x=decomposition.observed.index, y=decomposition.observed, title=f"Observed - {column}")
-    fig.update_xaxes(title_text="Date", tickvals=pd.date_range(start='1990-01-01', end='2022-12-31', freq='AS'), tickformat="%Y")
-    st.plotly_chart(fig)
+    fig, ax = plt.subplots(4, 1, figsize=(10, 10))
 
-    fig = px.line(x=decomposition.trend.index, y=decomposition.trend, title=f"Trend - {column}")
-    fig.update_xaxes(title_text="Date", tickvals=pd.date_range(start='1990-01-01', end='2022-12-31', freq='AS'), tickformat="%Y")
-    st.plotly_chart(fig)
+    ax[0].plot(decomposition.observed.index, decomposition.observed)
+    ax[0].set_title(f"Observed - {column}")
+    ax[0].set_xlabel("Date")
+    ax[0].set_ylabel("Observed")
 
-    fig = px.line(x=decomposition.seasonal.index, y=decomposition.seasonal.values, title=f"Seasonal - {column}")
-    fig.update_xaxes(title_text="Date", tickvals=pd.date_range(start='1990-01-01', end='2022-12-31', freq='AS'), tickformat="%Y")
-    st.plotly_chart(fig)
+    ax[1].plot(decomposition.trend.index, decomposition.trend)
+    ax[1].set_title(f"Trend - {column}")
+    ax[1].set_xlabel("Date")
+    ax[1].set_ylabel("Trend")
 
-    fig = px.line(x=decomposition.resid.index, y=decomposition.resid, title=f"Residual - {column}")
-    fig.update_xaxes(title_text="Date", tickvals=pd.date_range(start='1990-01-01', end='2022-12-31', freq='AS'), tickformat="%Y")
-    st.plotly_chart(fig)
+    ax[2].plot(decomposition.seasonal.index, decomposition.seasonal)
+    ax[2].set_title(f"Seasonal - {column}")
+    ax[2].set_xlabel("Date")
+    ax[2].set_ylabel("Seasonal")
 
+    ax[3].plot(decomposition.resid.index, decomposition.resid)
+    ax[3].set_title(f"Residual - {column}")
+    ax[3].set_xlabel("Date")
+    ax[3].set_ylabel("Residual")
+
+    plt.tight_layout()
+    plt.show()
+# Function to display RMSE values as a table on the home page
+def display_rmse():
+    rmse_data = {
+        'Location': ['TransNzoia', 'UasinGishu', 'Nandi', 'Turkana', 'Baringo', 'WestPokot', 'Samburu', 'ElgeyoMarakwet'],
+        'RMSE': [6.426, 7.060, 7.367, 2.375, 4.736, 4.430, 3.096, 6.728]
+    }
+    rmse_df = pd.DataFrame(rmse_data)
+    st.write("### RMSE Values for Each Location")
+    st.table(rmse_df)
+    
 # Page: Home
 def page_home():
     st.title("Welcome to Your Weather Data App!")
@@ -209,6 +230,25 @@ def page_home():
     st.write("Seasonal decomposition analysis has been performed for each column separately. You can explore the observed, trend, seasonal, and residual components for each variable.")
     st.write("From the plots of the seasonality component for each region, it's evident that there is noticeable seasonality present in all regions. The seasonality component captures recurring patterns or fluctuations that occur at regular intervals within each region's data. These patterns suggest that in each region follows a distinct seasonal trend, exhibiting periodic variations over time. Understanding and accounting for this seasonality is crucial for accurately modeling and forecasting rainfall patterns in these regions.")
     st.write("You can further explore the seasonal decomposition plots on the each data page.")
+
+    # RMSE section
+    st.header("RMSE (Root Mean Squared Error)")
+    st.write("The RMSE values for each region obtained from the Prophet model are as follows:")
+    
+    # Create a table to display RMSE values
+    rmse_data = {
+        "Region": ["TransNzoia", "UasinGishu", "Nandi", "Turkana", "Baringo", "WestPokot", "Samburu", "ElgeyoMarakwet"],
+        "RMSE": [6.43, 7.06, 7.37, 2.38, 4.74, 4.43, 3.10, 6.73]
+    }
+    rmse_df = pd.DataFrame(rmse_data)
+    st.table(rmse_df)
+
+    st.markdown("""
+    ### Things to Note:
+    - The models used for prediction include ARIMA, SARIMAX, and Prophet, with SARIMAX performing fairly well in terms of their RMSE values.
+    - Given the changes in climatic patterns, the analysis narrowed down to working with a 10-year period for modeling.
+    - Outliers were not dropped from the datasets as they were considered important indicators of changes in rainfall across seasons.
+    """)
 
 
 # Page 1: Rainfall Data
@@ -299,11 +339,70 @@ def page_temp_min():
     else:
         plot_seasonal_averages(temp_min_data, selected_column)
 
+TransNzoia = pd.read_csv('TransNzoia.csv')
+UasinGishu = pd.read_csv('UasinGishu.csv')
+Nandi = pd.read_csv('Nandi.csv')
+Turkana = pd.read_csv('Turkana.csv')
+Baringo = pd.read_csv('Baringo.csv')
+WestPokot = pd.read_csv('WestPokot.csv')
+Samburu = pd.read_csv('Samburu.csv')
+ElgeyoMarakwet = pd.read_csv('ElgeyoMarakwet.csv')
+
+def prophet_predictions(df, date_input):
+    # Rename columns to 'ds' and 'y' for Prophet
+    df.rename(columns={'ID': 'ds', df.columns[1]: 'y'}, inplace=True)
+
+    # Create and fit Prophet model
+    model = Prophet()
+    model.fit(df)
+
+    # Make future dataframe for prediction
+    future = pd.DataFrame({'ds': [date_input]})
+
+    # Predict
+    forecast = model.predict(future)
+
+    return forecast
+
+def page_prophet_predictions():
+    st.title("Prophet Predictions")
+
+    # Select dataframe
+    selected_df = st.selectbox("Select DataFrame", ["TransNzoia", "UasinGishu", "Nandi", "Turkana", "Baringo", "WestPokot", "Samburu", "ElgeyoMarakwet"])
+
+    # Select date
+    date_input = st.date_input("Select Date for Prediction")
+
+    # Perform Prophet predictions
+    if st.button("Predict"):
+        if selected_df == "TransNzoia":
+            forecast = prophet_predictions(TransNzoia, date_input)
+        elif selected_df == "UasinGishu":
+            forecast = prophet_predictions(UasinGishu, date_input)
+        elif selected_df == "Nandi":
+            forecast = prophet_predictions(Nandi, date_input)
+        elif selected_df == "Turkana":
+            forecast = prophet_predictions(Turkana, date_input)
+        elif selected_df == "Baringo":
+            forecast = prophet_predictions(Baringo, date_input)
+        elif selected_df == "WestPokot":
+            forecast = prophet_predictions(WestPokot, date_input)
+        elif selected_df == "Samburu":
+            forecast = prophet_predictions(Samburu, date_input)
+        elif selected_df == "ElgeyoMarakwet":
+            forecast = prophet_predictions(ElgeyoMarakwet, date_input)
+
+        # Display forecast
+        st.subheader("Prophet Forecast:")
+        st.write(f"Predicted Value (yhat): {forecast['yhat'].values[0]}")
+        st.write(f"Lower Bound (ylower): {forecast['yhat_lower'].values[0]}")
+        st.write(f"Upper Bound (yupper): {forecast['yhat_upper'].values[0]}")
+
 
 # Main function to run the app
 def main():
     st.sidebar.title("Navigation")
-    page = st.sidebar.selectbox("Go to", ["Home", "Rainfall Data", "Temperature Max Data", "Temperature Min Data"])
+    page = st.sidebar.selectbox("Go to", ["Home", "Rainfall Data", "Temperature Max Data", "Temperature Min Data", "Prophet Predictions"])
 
     if page == "Home":
         page_home()
@@ -313,6 +412,9 @@ def main():
         page_temp_max()
     elif page == "Temperature Min Data":
         page_temp_min()
+    elif page == "Prophet Predictions":
+        page_prophet_predictions()
+
 
 if __name__ == "__main__":
     main()
