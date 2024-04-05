@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 import matplotlib
-matplotlib.use('TkAgg')  # Or 'Qt5Agg'
+matplotlib.use("agg")  # Or 'Qt5Agg','TkAgg'
 import matplotlib.pyplot as plt
 import statsmodels.api as sm
 from prophet import Prophet
