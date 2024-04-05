@@ -241,7 +241,7 @@ def page_home():
 
     st.markdown("""
     ### Things to Note:
-    - The models used for prediction include ARIMA, SARIMAX, and Prophet, with SARIMAX performing fairly well in terms of their RMSE values.
+    - The models used for prediction include ARIMA, SARIMAX, and Prophet, with Prophet performing fairly well in terms of their RMSE values.
     - Given the changes in climatic patterns, the analysis narrowed down to working with a 10-year period for modeling.
     - Outliers were not dropped from the datasets as they were considered important indicators of changes in rainfall across seasons.
     """)
