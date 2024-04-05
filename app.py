@@ -112,41 +112,30 @@ def plot_outliers(data, column):
 
 # Perform seasonal decomposition and plot for each column
 def seasonal_decomposition_and_plot(data, column):
-    decomposition = sm.tsa.seasonal_decompose(data[column])
+    # Perform seasonal decomposition
+    s = sm.tsa.seasonal_decompose(data[column], period=365)  # Assuming yearly frequency
 
-    fig, ax = plt.subplots(4, 1, figsize=(10, 10))
-
-    ax[0].plot(decomposition.observed.index, decomposition.observed)
-    ax[0].set_title(f"Observed - {column}")
-    ax[0].set_xlabel("Date")
-    ax[0].set_ylabel("Observed")
-
-    ax[1].plot(decomposition.trend.index, decomposition.trend)
-    ax[1].set_title(f"Trend - {column}")
-    ax[1].set_xlabel("Date")
-    ax[1].set_ylabel("Trend")
-
-    ax[2].plot(decomposition.seasonal.index, decomposition.seasonal)
-    ax[2].set_title(f"Seasonal - {column}")
-    ax[2].set_xlabel("Date")
-    ax[2].set_ylabel("Seasonal")
-
-    ax[3].plot(decomposition.resid.index, decomposition.resid)
-    ax[3].set_title(f"Residual - {column}")
-    ax[3].set_xlabel("Date")
-    ax[3].set_ylabel("Residual")
-
+    # Plot the decomposition
+    plt.figure(figsize=(10, 6))
+    plt.subplot(4, 1, 1)
+    plt.plot(data.index, s.observed)
+    plt.title(f'Observed: {column}')
+    plt.xlim(pd.Timestamp('1990-01-01'), pd.Timestamp('2022-12-31'))  # Set x-axis limits
+    plt.subplot(4, 1, 2)
+    plt.plot(data.index, s.trend)
+    plt.title(f'Trend: {column}')
+    plt.xlim(pd.Timestamp('1990-01-01'), pd.Timestamp('2022-12-31'))  # Set x-axis limits
+    plt.subplot(4, 1, 3)
+    plt.plot(data.index, s.seasonal)
+    plt.title(f'Seasonality: {column}')
+    plt.xlim(pd.Timestamp('1990-01-01'), pd.Timestamp('2022-12-31'))  # Set x-axis limits
+    plt.subplot(4, 1, 4)
+    plt.plot(data.index, s.resid)
+    plt.title(f'Residual: {column}')
+    plt.xlim(pd.Timestamp('1990-01-01'), pd.Timestamp('2022-12-31'))  # Set x-axis limits
     plt.tight_layout()
     plt.show()
-# Function to display RMSE values as a table on the home page
-def display_rmse():
-    rmse_data = {
-        'Location': ['TransNzoia', 'UasinGishu', 'Nandi', 'Turkana', 'Baringo', 'WestPokot', 'Samburu', 'ElgeyoMarakwet'],
-        'RMSE': [6.426, 7.060, 7.367, 2.375, 4.736, 4.430, 3.096, 6.728]
-    }
-    rmse_df = pd.DataFrame(rmse_data)
-    st.write("### RMSE Values for Each Location")
-    st.table(rmse_df)
+
     
 # Page: Home
 def page_home():
