@@ -115,26 +115,33 @@ def seasonal_decomposition_and_plot(data, column):
     # Perform seasonal decomposition
     s = sm.tsa.seasonal_decompose(data[column], period=365)  # Assuming yearly frequency
 
+    # Create a figure
+    fig = plt.figure(figsize=(10, 10))
+
     # Plot the decomposition
-    plt.figure(figsize=(10, 6))
     plt.subplot(4, 1, 1)
     plt.plot(data.index, s.observed)
     plt.title(f'Observed: {column}')
     plt.xlim(pd.Timestamp('1990-01-01'), pd.Timestamp('2022-12-31'))  # Set x-axis limits
+
     plt.subplot(4, 1, 2)
     plt.plot(data.index, s.trend)
     plt.title(f'Trend: {column}')
     plt.xlim(pd.Timestamp('1990-01-01'), pd.Timestamp('2022-12-31'))  # Set x-axis limits
+
     plt.subplot(4, 1, 3)
     plt.plot(data.index, s.seasonal)
     plt.title(f'Seasonality: {column}')
     plt.xlim(pd.Timestamp('1990-01-01'), pd.Timestamp('2022-12-31'))  # Set x-axis limits
+
     plt.subplot(4, 1, 4)
     plt.plot(data.index, s.resid)
     plt.title(f'Residual: {column}')
     plt.xlim(pd.Timestamp('1990-01-01'), pd.Timestamp('2022-12-31'))  # Set x-axis limits
     plt.tight_layout()
-    plt.show()
+
+    # Display the plot in Streamlit
+    st.pyplot(fig)
 
     
 # Page: Home
