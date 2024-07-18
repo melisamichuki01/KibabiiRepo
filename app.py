@@ -1,3 +1,12 @@
+import sys
+import os
+
+# Define the full path to the 'prophet' folder
+prophet_path = os.path.join(os.getcwd(), 'myenv', 'Lib', 'site-packages')
+
+# Add the 'prophet' path to sys.path
+sys.path.insert(0, prophet_path)
+
 import streamlit as st
 import pandas as pd
 import plotly.express as px
@@ -5,7 +14,7 @@ import matplotlib
 matplotlib.use("Agg")  # Or 'Qt5Agg','TkAgg'
 import matplotlib.pyplot as plt
 import statsmodels.api as sm
-from myenv/Lib/site-packages/prophet import Prophet
+from prophet import Prophet  # Correct import statement
 # Function to add date features
 def add_date_features(df, date_column_name):
     df["Day"] = df[date_column_name].dt.dayofweek
