@@ -1,3 +1,22 @@
+import os
+
+# Function to modify the forecaster.py file
+def modify_forecaster_file():
+    file_path = "/home/adminuser/venv/lib/python3.11/site-packages/prophet/forecaster.py"
+    
+    if os.path.exists(file_path):
+        with open(file_path, "r") as file:
+            content = file.read()
+
+        # Replace np.float_ with np.float64
+        content = content.replace("np.float_", "np.float64")
+
+        with open(file_path, "w") as file:
+            file.write(content)
+
+# Modify the forecaster.py file
+modify_forecaster_file()
+
 import streamlit as st
 import pandas as pd
 import plotly.express as px
