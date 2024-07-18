@@ -2,5 +2,4 @@ pandas
 plotly
 streamlit
 statsmodels
-prophet
 matplotlib
